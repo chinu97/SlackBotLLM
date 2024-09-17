@@ -11,7 +11,7 @@ class LangchainClient {
 
         this.vectorDbStore = vectorDbStore;
         this.llm = llm;
-        this.actionHandlers = actionHandlers; // Object that maps action keys to handler functions
+        this.actionHandlers = actionHandlers;
         this.prompt = promptTemplate || ChatPromptTemplate.fromMessages([
             ["system", "You are a helpful Slack assistant. Use the following context to answer the user's question. If you can't find a relevant answer in the context, respond with 'JIRA_TICKET_NEEDED' followed by a brief explanation of why a Jira ticket should be created."],
             ["human", "Context: {context}\n\nQuestion: {question}"]

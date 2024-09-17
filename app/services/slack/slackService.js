@@ -78,10 +78,8 @@ const processMessage = async (message, client) => {
         console.log('Loading message posted:', loadingMessage.ts);
         let llmResponse = await langchainService.processQuery(message.text);
 
-        // Handle Jira ticket creation if needed
         llmResponse = await handleLLMResponse(llmResponse, message.text);
 
-        // Update the initial message with the final response
         console.log('Updating loading message with final response');
         await client.chat.update({
             channel: message.channel,
@@ -98,7 +96,6 @@ const processMessage = async (message, client) => {
             ]
         });
 
-        // Save the processed message
         await saveProcessedMessage(message);
 
     } catch (error) {
