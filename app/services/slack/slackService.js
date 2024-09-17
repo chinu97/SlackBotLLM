@@ -26,23 +26,6 @@ async function saveProcessedMessage(message) {
     }
 }
 
-const handleLLMResponse = async (response, messageText) => {
-    try {
-        if (response.startsWith('JIRA_TICKET_NEEDED')) {
-            console.log('Creating Jira ticket for message:', messageText);
-            const ticketReason = response.replace('JIRA_TICKET_NEEDED', '').trim();
-            const jiraTicket = await jiraService.createJiraTicket(messageText, ticketReason);
-            const resultMessage = `I don't have enough information to answer that question. A Jira ticket has been created to address this: ${jiraTicket.key}. Reason: ${ticketReason}`;
-            console.log('Jira ticket created:', jiraTicket.key);
-            return resultMessage;
-        }
-        return response;
-    } catch (error) {
-        console.error('Error handling LLM response:', error.message);
-        throw error;
-    }
-};
-
 const processMessage = async (message, client) => {
     try {
         console.log('Processing message:', message.ts);
@@ -77,8 +60,6 @@ const processMessage = async (message, client) => {
         });
         console.log('Loading message posted:', loadingMessage.ts);
         let llmResponse = await langchainService.processQuery(message.text);
-
-        llmResponse = await handleLLMResponse(llmResponse, message.text);
 
         console.log('Updating loading message with final response');
         await client.chat.update({
