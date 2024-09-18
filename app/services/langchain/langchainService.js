@@ -24,13 +24,13 @@ const initLangchainClient = async (options = {}) => {
             await pineconeService.checkAndCreatePineconeIndex(process.env.PINECONE_INDEX);
             break;
     }
-    langchainInstance = LangChainClient.getInstance(vectorStore, llm, null,  actions.actionHandlers);
+    langchainInstance = LangChainClient.getInstance(vectorStore, llm);
     return langchainInstance;
 };
 
-const processQuery = async function (query) {
+const processQuery = async function (query, userId) {
     try {
-        return await langchainInstance.getResponse(query);
+        return await langchainInstance.getResponse(query, userId);
     } catch (error) {
         console.error('Error processing query:', error);
         return "An error occurred while processing the query.";

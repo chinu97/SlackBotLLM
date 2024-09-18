@@ -1,7 +1,7 @@
 const { App } = require('@slack/bolt');
+const mongoose = require("mongoose");
 const slackService = require("./app/services/slack/slackService");
 const langchainService = require('./app/services/langchain/langchainService');
-const mongoose = require("mongoose");
 
 const startServer = async () => {
     try {
@@ -12,10 +12,14 @@ const startServer = async () => {
         });
         console.log('✅ Connected to MongoDB');
 
-        const langchainInstance = await langchainService.initLangchainClient({embeddingProvider : process.env.VECTOR_EMBEDDINGS_PROVIDER, vectorStoreType : process.env.VECTOR_STORE});
-        console.log('✅ LangChain client initialized with Pinecone');
+        // Initialize LangChain client
+        const langchainInstance = await langchainService.initLangchainClient({
+            embeddingProvider: process.env.VECTOR_EMBEDDINGS_PROVIDER,
+            vectorStoreType: process.env.VECTOR_STORE
+        });
+        console.log('✅ LangChain client initialized');
 
-        // Initialize the Slack Bolt app
+        // Initialize Slack Bolt app
         const app = new App({
             token: process.env.SLACK_BOT_TOKEN,
             socketMode: true,
@@ -24,9 +28,29 @@ const startServer = async () => {
         });
 
         // Set up message handling
-        app.message('', async ({ message, client }) => {
-            await slackService.processMessage(message, client);
+        app.message('', async ({message, client}) => {
+            try {
+                await slackService.processMessage(message, client);
+            } catch (error) {
+                console.error('Error processing message:', error.message);
+                await client.chat.postMessage({
+                    channel: message.channel,
+                    text: 'Sorry, there was an error processing your request. Please try again later.'
+                });
+            }
         });
+
+        // Handle button clicks
+        app.action('satisfaction_yes', slackService.handleSatisfactionYes);
+        app.action('satisfaction_no', slackService.handleSatisfactionNo);
+        app.action('create_ticket_yes', slackService.handleCreateTicketYes);
+        app.action('create_ticket_no', slackService.handleCreateTicketNo);
+
+        // Handle errors globally
+        app.error(async (error) => {
+            console.error('Global error handler:', error);
+        });
+
         // Start the Slack app
         await app.start();
         console.log('⚡️ Bolt app is running!');
